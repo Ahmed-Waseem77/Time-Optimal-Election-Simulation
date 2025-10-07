@@ -57,6 +57,9 @@ def profile_with_increasing_nodes(algorithmType: str):
     """
     Profile the algorithm with increasing number of nodes.
     """
+    print(
+        f"--- Starting profiling for increasing nodes with {algorithmType} algorithm ---"
+    )
     # Dictionaries to store runtime and message counts
     listOfRuntimes = []
     listOfMessageCounts = []
@@ -85,7 +88,8 @@ def profile_with_increasing_nodes(algorithmType: str):
     plt.ylabel("Total Runtime (seconds)")
     plt.title("Runtime with Increasing Nodes")
     plt.grid(True)
-    plt.show()
+    plt.savefig(f"{algorithmType}_runtime_increasing_nodes.png")
+    plt.close()  # Close the plot to free memory
 
     # Plot the message counts of the algorithm
     x_values_messages = [item[1] for item in listOfMessageCounts]
@@ -99,13 +103,20 @@ def profile_with_increasing_nodes(algorithmType: str):
     plt.ylabel("Total Messages Sent")
     plt.title("Message Complexity with Increasing Nodes")
     plt.grid(True)
-    plt.show()
+    plt.savefig(f"{algorithmType}_message_complexity_increasing_nodes.png")
+    plt.close()  # Close the plot to free memory
+    print(
+        f"--- Finished profiling for increasing nodes with {algorithmType} algorithm ---"
+    )
 
 
 def profile_with_increasing_connectivity(algorithmType: str):
     """
     Profile the algorithm with increasing connectivity.
     """
+    print(
+        f"--- Starting profiling for increasing connectivity with {algorithmType} algorithm ---"
+    )
     listOfResults = []
 
     for i in range(1, 50):
@@ -129,7 +140,8 @@ def profile_with_increasing_connectivity(algorithmType: str):
     plt.ylabel("Total Runtime (seconds)")
     plt.title("Runtime with Increasing Connectivity")
     plt.grid(True)
-    plt.show()
+    plt.savefig(f"{algorithmType}_runtime_increasing_connectivity.png")
+    plt.close()  # Close the plot to free memory
 
     # Plotting for Message Complexity
     message_x_values = [item[2] for item in listOfResults]  # Connectivity values
@@ -143,4 +155,8 @@ def profile_with_increasing_connectivity(algorithmType: str):
     plt.ylabel("Total Messages Sent")
     plt.title("Message Complexity with Increasing Connectivity")
     plt.grid(True)
-    plt.show()
+    plt.savefig(f"{algorithmType}_message_complexity_increasing_connectivity.png")
+    plt.close()  # Close the plot to free memory
+    print(
+        f"--- Finished profiling for increasing connectivity with {algorithmType} algorithm ---"
+    )
