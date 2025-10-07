@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict
 
+
 @dataclass
 class Node:
     node_id: int
-    neighbors: List['Node'] = field(default_factory=list)
+    neighbors: List["Node"] = field(default_factory=list)
     incoming_messages: List[Tuple[int, int]] = field(default_factory=list)
     outgoing_messages: List[Tuple[int, int]] = field(default_factory=list)
+    messages_sent: int = 0
 
     def reset_outgoing_messages(self):
         """
@@ -26,5 +28,5 @@ class Node:
         """
         pass
 
-    def run_algorithim(network: List['Node'], verbose: bool = False):
+    def run_algorithim(network: List["Node"], verbose: bool = False):
         pass

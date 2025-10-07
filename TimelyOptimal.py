@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict
 from Node import Node
+import time
+
 
 @dataclass
 class TimelyOptimalNode(Node):
@@ -93,36 +95,50 @@ class TimelyOptimalNode(Node):
 
     def run_algorithm(network: List[Node], verbose: bool = False):
         pulse = 0
+        for node in network:
+            node.messages_sent = 0
+
+        start_time = time.time()  # Start timing the algorithm
+
         while True:
             pulse += 1
-            print(f"--- Pulse {pulse} ---")
-    
+            if verbose:
+                print(f"--- Pulse {pulse} ---")
+
             # Phase 1: Prepare messages to send
             for node in network:
                 node.prepare_messages()
-    
+
             # Phase 2: Collect all outgoing messages
-            messages_to_deliver: Dict[int, List[Tuple[int, int]]] = {node.node_id: [] for node in network}
+            messages_to_deliver: Dict[int, List[Tuple[int, int]]] = {
+                node.node_id: [] for node in network
+            }
             for node in network:
+                # Count messages sent *before* clearing outgoing_messages
+                node.messages_sent += len(node.outgoing_messages) * len(node.neighbors)
                 for message in node.outgoing_messages:
                     for neighbor in node.neighbors:
                         messages_to_deliver[neighbor.node_id].append(message)
                 node.reset_outgoing_messages()
-    
+
             # Phase 3: Deliver messages to nodes
             for node in network:
                 node.receive_messages(messages_to_deliver[node.node_id])
-    
+
             # Phase 4: Process received messages
             for node in network:
                 node.process_messages()
-    
+
             # Phase 5: Check for termination
             all_completed = all(node.completed for node in network)
             if all_completed:
-                print("All nodes have completed the algorithm.")
+                if verbose:
+                    print("All nodes have completed the algorithm.")
                 break
-            
+
+        end_time = time.time()  # End timing the algorithm
+        total_runtime = end_time - start_time
+
         # Display results
         if verbose:
             print("\n--- Final States ---")
@@ -134,5 +150,6 @@ class TimelyOptimalNode(Node):
                 print(f"  Repetition Counter: {node.repetition_counter}")
                 print(f"  Is Candidate: {node.is_candidate}")
                 print(f"  Completed: {node.completed}\n")
-    
-    
+
+        total_messages = sum(node.messages_sent for node in network)
+        return total_runtime, total_messages

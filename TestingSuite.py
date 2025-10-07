@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pstats
 import cProfile
 
+
 def setup_network() -> List[Node]:
     """
     Set up the network with nodes and their neighbors.
@@ -26,7 +27,9 @@ def setup_network() -> List[Node]:
     return network
 
 
-def setup_exaustive_network(numberOfNodes: int, connectivity: int, type: str) -> List[Node]:
+def setup_exaustive_network(
+    numberOfNodes: int, connectivity: int, type: str
+) -> List[Node]:
     """
     Network used for profiling
     This function needs to be determinstic in the way it connects Nodes to each other
@@ -35,89 +38,109 @@ def setup_exaustive_network(numberOfNodes: int, connectivity: int, type: str) ->
     nodes = []
     for i in range(numberOfNodes):
         if type == "TimelyOptimal":
-            nodes.append(TimelyOptimalNode(node_id=i+1, is_initiator=True if i == 0 else False))
+            nodes.append(
+                TimelyOptimalNode(node_id=i + 1, is_initiator=True if i == 0 else False)
+            )
         else:
             nodes.append(Node(node_id=i))
 
     for i in range(numberOfNodes):
-        for j in range(i+1, i+connectivity+1):
+        for j in range(i + 1, i + connectivity + 1):
             if j < numberOfNodes:
                 nodes[i].neighbors.append(nodes[j])
                 nodes[j].neighbors.append(nodes[i])
 
     return nodes
 
+
 def profile_with_increasing_nodes(algorithmType: str):
     """
     Profile the algorithm with increasing number of nodes.
     """
-    #dictionary of runtimes
+    # Dictionaries to store runtime and message counts
     listOfRuntimes = []
+    listOfMessageCounts = []
 
     for i in range(1, 50):
-        increasing_connectivity_profiler = cProfile.Profile()
-        increasing_connectivity_profiler.enable()
-        network = setup_exaustive_network(10 + i*i, 10, 'TimelyOptimal')
+        # The number of nodes is 10 + i*i to have a more exponential-like growth
+        numberOfNodes = 10 + i * i
+        network = setup_exaustive_network(numberOfNodes, 10, "TimelyOptimal")
         if algorithmType == "TimelyOptimal":
-            TimelyOptimalNode.run_algorithm(network, verbose=False)
+            total_runtime, total_messages = TimelyOptimalNode.run_algorithm(
+                network, verbose=False
+            )
+            listOfRuntimes.append((total_runtime, numberOfNodes))
+            listOfMessageCounts.append((total_messages, numberOfNodes))
         else:
             # Add other algorithms here
             pass
-        increasing_connectivity_profiler.disable()
 
-        stats = pstats.Stats(increasing_connectivity_profiler)
+    # Plot the runtimes of the algorithm
+    x_values_runtime = [item[1] for item in listOfRuntimes]
+    y_values_runtime = [item[0] for item in listOfRuntimes]
 
-        # get total runtime and add it to the list
-        total_runtime = stats.total_tt
-        listOfRuntimes.append((total_runtime, 10 + i))
-
-    # plot the runtimes of the algorithm
-    # Extract x and y values
-    x_values = [runtime[1] for runtime in listOfRuntimes]  # The 10 + i values
-    y_values = [runtime[0] for runtime in listOfRuntimes]  # The total_runtime values
-
-    # Plotting
     plt.figure(figsize=(8, 5))
-    plt.plot(x_values, y_values, marker='o', color='skyblue', linestyle='-')
+    plt.plot(x_values_runtime, y_values_runtime, marker="o", color="red", linestyle="-")
     plt.xlabel("Number of Nodes")
-    plt.ylabel("Total Runtime")
-    plt.title("Runtime Plot")
+    plt.ylabel("Total Runtime (seconds)")
+    plt.title("Runtime with Increasing Nodes")
     plt.grid(True)
     plt.show()
+
+    # Plot the message counts of the algorithm
+    x_values_messages = [item[1] for item in listOfMessageCounts]
+    y_values_messages = [item[0] for item in listOfMessageCounts]
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(
+        x_values_messages, y_values_messages, marker="o", color="skyblue", linestyle="-"
+    )
+    plt.xlabel("Number of Nodes")
+    plt.ylabel("Total Messages Sent")
+    plt.title("Message Complexity with Increasing Nodes")
+    plt.grid(True)
+    plt.show()
+
 
 def profile_with_increasing_connectivity(algorithmType: str):
     """
     Profile the algorithm with increasing connectivity.
     """
-    #dictionary of runtimes
-    listOfRuntimes = []
+    listOfResults = []
+
     for i in range(1, 50):
-        increasing_connectivity_profiler = cProfile.Profile()
-        increasing_connectivity_profiler.enable()
-        network = setup_exaustive_network(200, 10 + i, 'TimelyOptimal')
+        connectivity = 10 + i
+        network = setup_exaustive_network(200, connectivity, "TimelyOptimal")
         if algorithmType == "TimelyOptimal":
-            TimelyOptimalNode.run_algorithm(network, verbose=False)
+            total_runtime, total_messages = TimelyOptimalNode.run_algorithm(
+                network, verbose=False
+            )
+            listOfResults.append((total_runtime, total_messages, connectivity))
         else:
-            # Add other algorithms here
             pass
-        increasing_connectivity_profiler.disable()
 
-        stats = pstats.Stats(increasing_connectivity_profiler)
+    # Plotting for Runtime
+    runtime_x_values = [item[2] for item in listOfResults]  # Connectivity values
+    runtime_y_values = [item[0] for item in listOfResults]  # Total runtime
 
-        # get total runtime and add it to the list
-        total_runtime = stats.total_tt
-        listOfRuntimes.append((total_runtime, 10 + i))
-
-    # plot the runtimes of the algorithm
-    # Extract x and y values
-    x_values = [runtime[1] for runtime in listOfRuntimes]  # The 10 + i values
-    y_values = [runtime[0] for runtime in listOfRuntimes]  # The total_runtime values
-
-    # Plotting
     plt.figure(figsize=(8, 5))
-    plt.plot(x_values, y_values, marker='o', color='skyblue', linestyle='-')
+    plt.plot(runtime_x_values, runtime_y_values, marker="o", color="red", linestyle="-")
     plt.xlabel("Connectivity")
-    plt.ylabel("Total Runtime")
-    plt.title("Runtime Plot")
+    plt.ylabel("Total Runtime (seconds)")
+    plt.title("Runtime with Increasing Connectivity")
+    plt.grid(True)
+    plt.show()
+
+    # Plotting for Message Complexity
+    message_x_values = [item[2] for item in listOfResults]  # Connectivity values
+    message_y_values = [item[1] for item in listOfResults]  # Total messages
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(
+        message_x_values, message_y_values, marker="o", color="blue", linestyle="-"
+    )
+    plt.xlabel("Connectivity")
+    plt.ylabel("Total Messages Sent")
+    plt.title("Message Complexity with Increasing Connectivity")
     plt.grid(True)
     plt.show()
